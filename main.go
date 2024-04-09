@@ -168,8 +168,25 @@ func (d *Driver) ReadAll(collection string) ([]string , error)  {
 	return records, nil
 }
 
-func (d *Driver) Delete() error {
-	
+func (d *Driver) Delete(collection , resource string) error {
+
+	path := path.Join(collection, resource)
+	mutex := d.getORcreateMutex(collection)
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	dir := filepath.Join(d.dir , path)
+
+	switch fi , err := stat(dir);{
+	case fi == nil , err != nil:
+		return fmt.Errorf("Unable to find file" , path)
+	case fi.Mode().IsDir():
+		return os.RemoveAll(dir)
+	case fi.Mode().IsRegular():
+		return os.RemoveAll(dir + ".json")
+	}
+
+	return nil
 }
 
 func (d *Driver) getORcreateMutex(collection string) *sync.Mutex {
