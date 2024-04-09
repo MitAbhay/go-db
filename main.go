@@ -6,6 +6,8 @@ import {
 	"os"
 	"encoding/json"
 	"sync"
+	"io/ioutil"
+	"path/filepath"
 	"github.com/jcelliott/lumber"
 }
 
@@ -30,15 +32,87 @@ type{
 	}
 }
 
-type Options{
+type Options struct{
 	Logger
 }
 
-func New()(){
+func stat(path string) (fi os.FileInfo, err error) {
+	if fi , err := os.Stats(path) ; os.IsNotExist(err){
+		fi , err = os.Stat(path + ".json")
+	}
 
+	return 
 }
 
-func (d *Driver) Write() error {
+func New(dir string , options *Options)(*Driver , error) {
+
+	dir  = filepath.Clean(dir)
+
+	opts := Options{}
+
+	if options != nil {
+		 	
+	}
+
+	if opts.Logger == nil {
+		opts.Logger = lumber.NewConsoleLogger((lumber.INFO))
+	}
+
+	driver := Driver{
+		dir := dir,
+		mutexes: make(map[string]*sync.Mutex),
+		log : opts.Logger,
+	}
+
+	if _, err := os.Stat(dir); err == nil {
+		opts.Logger.Debug("Using '%s' (Database already exists)\n", dir)
+
+		return &driver , nil
+	}
+
+	opts.Logger.Debug("Creating database at '%s'....\n", dir)
+
+
+	return &driver , os.MkdirAll(dir,0755)
+}
+
+
+
+func (d *Driver) Write(collection , resource string , v interface{}) error {
+	if collection == "" {
+		return fmt.Errorf("missing collection - No place to save record")
+	}
+
+	if resource == "" {
+		return fmt.Errorf("missing resource - unable to save record - No name")
+	}
+
+	mutex := d.getORcreateMutex(collection)
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	dir := filepath.Join(d.dir, collection)
+	finalPath := filepath.Join(dir , resource + ".json")
+	tmpPath := finalPath + ".tmp"
+
+
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	b , err := json.MarshalIndent(v , "", "\t")
+
+	if err != nil {
+		return err
+	}
+
+	b = append(b , byte('\n'))
+
+	if err := ioutil.WriteFile(tmpPath, b , 0644); err != nil {
+		return err
+	}
+
 
 }
 
@@ -77,6 +151,7 @@ func main() {
 	dir := "./"d
 
 	db , err := New(dir , nil)
+
 	if(err != nil) fmt.Println("Error",err)
 
 	empolyees := []User{
