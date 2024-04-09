@@ -38,7 +38,23 @@ func New()(){
 
 }
 
-func Write() error {
+func (d *Driver) Write() error {
+
+}
+
+func (d *Driver) Read() error {
+	
+}
+
+func (d *Driver) ReadAll() () {
+	
+}
+
+func (d *Driver) Delete() error {
+	
+}
+
+func (d *Driver) getORcreateMutex() *sync.Mutex {
 	
 }
 type Address struct {
@@ -107,13 +123,13 @@ func main() {
 	fmt.Println("AllUsers" , allUsers)
 
 
-	if err := db.Delete("user" , "abhay") ; err != nil {
-		fmt.Println("Error" ,err)
-	}
+	// if err := db.Delete("user" , "abhay") ; err != nil {
+	// 	fmt.Println("Error" ,err)
+	// }
 
-	if err := db.DeleteAll("user" , ""); err != nil {
-		fmt.Println("Error" , err)
-	}
+	// if err := db.Delete("user" , ""); err != nil {
+	// 	fmt.Println("Error" , err)
+	// }
 
 
 
