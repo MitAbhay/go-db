@@ -5,8 +5,42 @@ import {
 	"fmt"
 	"os"
 	"encoding/json"
+	"sync"
+	"github.com/jcelliott/lumber"
 }
 
+const version = "1.0.0"
+
+type{
+	Logger interface{
+		Fatal(string , ...interface{})
+		Error(string , ...interface{})
+		Warn(string , ...interface{})
+		Info(string , ...interface{})
+		Debug(string , ...interface{})
+		Trace(string , ...interface{})
+
+	}
+
+	Driver struct{
+		mutex sync.Mutex
+		mutexes map[string]*sync.Mutex
+		dir string
+		log Logger
+	}
+}
+
+type Options{
+	Logger
+}
+
+func New()(){
+
+}
+
+func Write() error {
+	
+}
 type Address struct {
 	City string
 	State string
@@ -61,9 +95,27 @@ func main() {
 	for _, record := range records{
 
 		employeeFound := User{}
-		
 
+		if err := json.Unmarshal([]byte(record), &employeeFound); err != nil {
+			fmt.Println("Error" , err)
+		}
+
+		allUsers = append(allUsers, employeeFound)
+		
 	}
+
+	fmt.Println("AllUsers" , allUsers)
+
+
+	if err := db.Delete("user" , "abhay") ; err != nil {
+		fmt.Println("Error" ,err)
+	}
+
+	if err := db.DeleteAll("user" , ""); err != nil {
+		fmt.Println("Error" , err)
+	}
+
+
 
 	
 }
