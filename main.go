@@ -113,11 +113,32 @@ func (d *Driver) Write(collection , resource string , v interface{}) error {
 		return err
 	}
 
-
+	return os.Rename(tmpPath,finalPath)
 }
 
-func (d *Driver) Read() error {
+func (d *Driver) Read(collection , resource string , v interface{}) error {
 	
+	if collection == "" {
+		return fmt.Errorf("missing collection - no place to save record")
+	}
+
+	if resource == "" {
+		return fmt.Errorf("missing resource - unable to save record - No name")
+	}
+
+	record := filepath.Join(d.dir , collection , resource)
+
+	if _, err := stat(record); err != nil {
+		return err
+	}
+
+	b , err := ioutil.ReadFile(record + ".json")
+
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(b, &v)
 }
 
 func (d *Driver) ReadAll() () {
@@ -128,8 +149,19 @@ func (d *Driver) Delete() error {
 	
 }
 
-func (d *Driver) getORcreateMutex() *sync.Mutex {
-	
+func (d *Driver) getORcreateMutex(collection string) *sync.Mutex {
+
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+
+	m , ok := d.mutexes[collection]
+
+	if !ok {
+		m =  &sync.Mutex{}
+		d.mutexes[collection] = m
+	}
+
+	return m
 }
 type Address struct {
 	City string
